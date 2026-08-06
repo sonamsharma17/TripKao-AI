@@ -1,0 +1,12 @@
+node_modules/
+config.json
+posts_db.json
+status_db.json
+.env
+puppeteer_session/
+to_upload/
+.gemini/
+.agents/
+.vscode/
+*.log
+posting_logs.txt

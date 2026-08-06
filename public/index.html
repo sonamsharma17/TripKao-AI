@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SocialPost AI - Automated Social Publishing</title>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="app-container">
+    <!-- Sidebar Navigation -->
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brand-logo"></div>
+        <span class="brand-name">SocialPost <span class="accent-text">AI</span></span>
+      </div>
+      <nav class="nav-menu">
+        <button class="nav-item active" data-tab="dashboard">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/></svg>
+          Dashboard
+        </button>
+        <button class="nav-item" data-tab="queue">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+          Posting Queue
+        </button>
+        <button class="nav-item" data-tab="logs">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9M3 20v-8a2 2 0 0 1 2-2h4l2-3h6a2 2 0 0 1 2 2v9"/></svg>
+          Activity Logs
+        </button>
+        <button class="nav-item" data-tab="settings">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+          Settings
+        </button>
+      </nav>
+      <div class="sidebar-footer">
+        <div class="status-indicator">
+          <span class="pulse-dot" id="system-pulse"></span>
+          <span id="system-status-text">Server Online</span>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="main-content">
+      <!-- Top header bar -->
+      <header class="top-header">
+        <div class="header-left">
+          <h1 id="page-title">Dashboard</h1>
+        </div>
+        <div class="header-right">
+          <div class="badge-container">
+            <span class="badge" id="tunnel-badge">
+              <span class="badge-dot"></span>
+              Tunnel: <span id="tunnel-status">Disabled</span>
+            </span>
+            <span class="badge" id="scheduler-badge">
+              <span class="badge-dot"></span>
+              Scheduler: <span id="scheduler-status">Stopped</span>
+            </span>
+          </div>
+        </div>
+      </header>
+
+      <!-- Content Views -->
+      <div class="view-container">
+        
+        <!-- DASHBOARD VIEW -->
+        <section id="view-dashboard" class="content-view active">
+          <!-- Stats Grid -->
+          <div class="stats-grid">
+            <div class="stat-card">
+              <div class="stat-header">
+                <span class="stat-title">Total Queue</span>
+                <div class="stat-icon-wrapper blue">📋</div>
+              </div>
+              <div class="stat-value" id="stat-total">0</div>
+              <div class="stat-desc">Posts in schedule file</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-header">
+                <span class="stat-title">Published</span>
+                <div class="stat-icon-wrapper green">✅</div>
+              </div>
+              <div class="stat-value" id="stat-published">0</div>
+              <div class="stat-desc">Successfully posted to social</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-header">
+                <span class="stat-title">Failed</span>
+                <div class="stat-icon-wrapper red">❌</div>
+              </div>
+              <div class="stat-value" id="stat-failed">0</div>
+              <div class="stat-desc">Encountered errors</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-header">
+                <span class="stat-title">Images</span>
+                <div class="stat-icon-wrapper yellow">🖼️</div>
+              </div>
+              <div class="stat-value" id="stat-images">0</div>
+              <div class="stat-desc">Files in images folder</div>
+            </div>
+          </div>
+
+          <!-- Quick Controls & Upload Section -->
+          <div class="dashboard-row">
+            <!-- Left: Quick Actions -->
+            <div class="card flex-1">
+              <div class="card-header">
+                <h3 class="card-title">Quick Actions</h3>
+              </div>
+              <div class="card-body action-buttons-grid">
+                <button class="btn btn-primary" id="btn-toggle-scheduler">
+                  <span id="btn-scheduler-text">Start Scheduler</span>
+                </button>
+                <button class="btn btn-secondary" id="btn-sync-now">
+                  🔄 Scan &amp; Publish Now
+                </button>
+                <button class="btn btn-outline" id="btn-clear-history">
+                  🗑️ Reset Queue Statuses
+                </button>
+                <button class="btn btn-outline-danger" id="btn-clear-logs">
+                  🧹 Clear Log File
+                </button>
+              </div>
+            </div>
+
+            <!-- Right: Upload Files -->
+            <div class="card flex-1">
+              <div class="card-header">
+                <h3 class="card-title">Content Importer</h3>
+              </div>
+              <div class="card-body importer-split">
+                <!-- CSV Upload -->
+                <div class="upload-zone" id="upload-csv-zone">
+                  <div class="upload-icon">📄</div>
+                  <div class="upload-text">
+                    <strong>Upload Schedule</strong>
+                    <span>CSV or XLSX Excel Spreadsheet</span>
+                  </div>
+                  <input type="file" id="csv-file-input" accept=".csv,.xlsx,.xls" style="display: none;">
+                </div>
+                <!-- Images Upload -->
+                <div class="upload-zone" id="upload-images-zone">
+                  <div class="upload-icon">🎥</div>
+                  <div class="upload-text">
+                    <strong>Upload Media</strong>
+                    <span>Drag or select multiple post images &amp; videos</span>
+                  </div>
+                  <input type="file" id="images-file-input" multiple accept="image/*,video/*" style="display: none;">
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Configuration Status Panel -->
+          <div class="card mt-24">
+            <div class="card-header">
+              <h3 class="card-title">Connection Status Overview</h3>
+            </div>
+            <div class="card-body connection-status-summary">
+              <div class="conn-item" id="conn-fb">
+                <span class="conn-indicator"></span>
+                <span class="conn-label">Facebook Integration</span>
+              </div>
+              <div class="conn-item" id="conn-ig">
+                <span class="conn-indicator"></span>
+                <span class="conn-label">Instagram Integration</span>
+              </div>
+              <div class="conn-item" id="conn-tunnel">
+                <span class="conn-indicator"></span>
+                <span class="conn-label">Local Image Tunnel</span>
+              </div>
+              <div class="conn-item" id="conn-csv">
+                <span class="conn-indicator"></span>
+                <span class="conn-label">Schedule Loaded</span>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- POSTING QUEUE VIEW -->
+        <section id="view-queue" class="content-view">
+          <div class="queue-header-actions">
+            <!-- Add Post Plus Zone -->
+            <div class="add-post-bar">
+              <button class="btn btn-primary" id="btn-add-post-trigger">
+                ➕ Create New Post Draft
+              </button>
+              <input type="file" id="queue-media-input" multiple accept="image/*,video/*" style="display: none;">
+            </div>
+            
+            <div class="table-actions-right">
+              <div class="search-box-container">
+                <input type="text" id="queue-search" class="form-input" placeholder="Search scheduled posts...">
+              </div>
+              <div class="filter-tabs">
+                <button class="filter-tab active" data-filter="all">All</button>
+                <button class="filter-tab" data-filter="Pending">Pending</button>
+                <button class="filter-tab" data-filter="Published">Published</button>
+                <button class="filter-tab" data-filter="Failed">Failed</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="card mt-16 table-card">
+            <div class="table-responsive">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th style="width: 120px;">Media Content</th>
+                    <th style="width: 150px;">Type</th>
+                    <th>Caption</th>
+                    <th style="width: 150px;">Date</th>
+                    <th style="width: 120px;">Time</th>
+                    <th style="width: 200px; text-align: right;">Status &amp; Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="queue-tbody">
+                  <!-- Javascript populated -->
+                  <tr>
+                    <td colspan="6" style="text-align: center; padding: 40px; color: var(--text-secondary);">
+                      Loading scheduled postings...
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- ACTIVITY LOGS VIEW -->
+        <section id="view-logs" class="content-view">
+          <div class="logs-actions">
+            <span>Real-time backend audit logs</span>
+            <div class="log-buttons">
+              <button class="btn btn-outline btn-sm" id="btn-refresh-logs">Refresh</button>
+              <button class="btn btn-outline-danger btn-sm" id="btn-clear-logs-tab">Clear Logs</button>
+            </div>
+          </div>
+          <div class="terminal-container mt-16">
+            <div class="terminal-header">
+              <div class="terminal-dot red"></div>
+              <div class="terminal-dot yellow"></div>
+              <div class="terminal-dot green"></div>
+              <div class="terminal-title">posting_logs.txt</div>
+            </div>
+            <div class="terminal-body" id="logs-output">
+              <!-- Logs content goes here -->
+              [SYSTEM] Connection starting...
+            </div>
+          </div>
+        </section>
+
+        <!-- SETTINGS VIEW -->
+        <section id="view-settings" class="content-view">
+          <form id="settings-form">
+            <div class="settings-grid">
+              
+              <!-- Meta API Settings -->
+              <div class="card span-2">
+                <div class="card-header">
+                  <h3 class="card-title">Meta Graph API Settings (Recommended)</h3>
+                </div>
+                <div class="card-body">
+                  <div class="form-group">
+                    <label class="form-label" for="metaAccessToken">Meta System / Page Access Token</label>
+                    <input type="password" id="metaAccessToken" class="form-input" placeholder="EAABwB...">
+                    <small class="form-help">Generate a Page Access Token or System User Access Token from your Meta Developer portal with pages_manage_posts, instagram_basic, and instagram_content_publish permissions.</small>
+                  </div>
+                  
+                  <div class="cloudinary-grid mt-16">
+                    <div class="form-group">
+                      <label class="form-label" for="facebookPageId">Facebook Page ID</label>
+                      <input type="text" id="facebookPageId" class="form-input" placeholder="e.g. 1029384756102">
+                    </div>
+                    <div class="form-group">
+                      <label class="form-label" for="instagramBusinessAccountId">Instagram Business Account ID (Optional)</label>
+                      <input type="text" id="instagramBusinessAccountId" class="form-input" placeholder="e.g. 1784140123456789">
+                      <small class="form-help">Leave empty to auto-discover using your Facebook Page ID.</small>
+                    </div>
+                  </div>
+
+                  <div class="flex-row gap-16 mt-16">
+                    <label class="checkbox-container">
+                      <input type="checkbox" id="publishToFacebook" checked>
+                      <span class="checkbox-mark"></span>
+                      Publish to Facebook Page
+                    </label>
+                    <label class="checkbox-container">
+                      <input type="checkbox" id="publishToInstagram" checked>
+                      <span class="checkbox-mark"></span>
+                      Publish to Instagram Business
+                    </label>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Facebook Legacy Authentication (Deprecated) -->
+              <div class="card">
+                <div class="card-header">
+                  <h3 class="card-title">Puppeteer Browser Login (Backup / Dev Only)</h3>
+                </div>
+                <div class="card-body">
+                  <div class="form-group">
+                    <label class="form-label" for="facebookEmail">Facebook Login Email / Phone</label>
+                    <input type="text" id="facebookEmail" class="form-input" placeholder="email@example.com">
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label" for="facebookPassword">Facebook Password</label>
+                    <input type="password" id="facebookPassword" class="form-input" placeholder="••••••••">
+                  </div>
+                  <div class="form-group">
+                    <label class="checkbox-container mt-16">
+                      <input type="checkbox" id="runVisually" checked>
+                      <span class="checkbox-mark"></span>
+                      <strong>Run Browser Visually (Headful)</strong>
+                    </label>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Content and Directories Settings -->
+              <div class="card">
+                <div class="card-header">
+                  <h3 class="card-title">System Paths &amp; Schedulers</h3>
+                </div>
+                <div class="card-body">
+                  <div class="form-group">
+                    <label class="form-label" for="csvFilePath">Schedule File Path</label>
+                    <input type="text" id="csvFilePath" class="form-input" placeholder="./schedule.csv">
+                    <small class="form-help">Path to the CSV or Excel spreadsheet containing caption mapping.</small>
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label" for="imagesFolderPath">Images Folder Path</label>
+                    <input type="text" id="imagesFolderPath" class="form-input" placeholder="./posts_images">
+                    <small class="form-help">Directory containing your posts' image files.</small>
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label" for="timezone">Target Timezone</label>
+                    <select id="timezone" class="form-input">
+                      <option value="local">Local Machine Time</option>
+                      <option value="UTC">Coordinated Universal Time (UTC)</option>
+                      <option value="America/New_York">Eastern Time (US &amp; Canada)</option>
+                      <option value="America/Chicago">Central Time (US &amp; Canada)</option>
+                      <option value="America/Los_Angeles">Pacific Time (US &amp; Canada)</option>
+                      <option value="Europe/London">London / GMT</option>
+                      <option value="Europe/Paris">Paris / Central European</option>
+                      <option value="Asia/Kolkata">Kolkata / Indian Standard Time</option>
+                      <option value="Asia/Singapore">Singapore / Standard Time</option>
+                      <option value="Asia/Tokyo">Tokyo / Japan Standard Time</option>
+                      <option value="Australia/Sydney">Sydney / Eastern Australia</option>
+                    </select>
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label" for="mongoUri">MongoDB Connection String</label>
+                    <input type="text" id="mongoUri" class="form-input" placeholder="mongodb://localhost:27017/tripkaroai">
+                    <small class="form-help">Database URL (Falls back to local JSON file posts_db.json if disconnected).</small>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Tunneling & Cloud hosting -->
+              <div class="card span-2">
+                <div class="card-header">
+                  <h3 class="card-title">Image Exposure Settings (For Instagram API)</h3>
+                </div>
+                <div class="card-body">
+                  <label class="checkbox-container select-tunnel-method">
+                    <input type="checkbox" id="useLocalTunnel">
+                    <span class="checkbox-mark"></span>
+                    <strong>Enable Local Tunnel (Default, Zero-Config)</strong>
+                    <span class="subtext">Automatically creates a temporary, public URL pointing to your machine when publishing so Meta can fetch the image.</span>
+                  </label>
+
+                  <div class="divider">OR USE CLOUDINARY STORAGE</div>
+
+                  <div class="cloudinary-form-fields mt-16" id="cloudinary-fields">
+                    <div class="cloudinary-grid">
+                      <div class="form-group">
+                        <label class="form-label" for="cloudinaryCloudName">Cloudinary Cloud Name</label>
+                        <input type="text" id="cloudinaryCloudName" class="form-input" placeholder="e.g. dxyz1234">
+                      </div>
+                      <div class="form-group">
+                        <label class="form-label" for="cloudinaryApiKey">Cloudinary API Key</label>
+                        <input type="text" id="cloudinaryApiKey" class="form-input" placeholder="Enter API Key">
+                      </div>
+                      <div class="form-group">
+                        <label class="form-label" for="cloudinaryApiSecret">Cloudinary API Secret</label>
+                        <input type="password" id="cloudinaryApiSecret" class="form-input" placeholder="Enter API Secret">
+                      </div>
+                    </div>
+                    <small class="form-help mt-8">Images will be temporarily uploaded to Cloudinary, published, and instantly removed from your media library.</small>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+
+            <!-- Sticky footer for saving -->
+            <div class="form-actions mt-24">
+              <button type="submit" class="btn btn-primary" id="btn-save-settings">Save Configuration Settings</button>
+            </div>
+          </form>
+        </section>
+
+      </div>
+    </main>
+  </div>
+
+  <!-- Toast Notification System -->
+  <div class="toast-container" id="toast-container"></div>
+
+  <!-- Caption Viewer Modal -->
+  <div class="modal" id="caption-modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 class="modal-title">Post Caption Detail</h3>
+        <button class="modal-close" id="btn-close-caption-modal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <pre class="caption-text-preview" id="modal-caption-text"></pre>
+      </div>
+    </div>
+  </div>
+
+  <!-- Error Details Modal -->
+  <div class="modal" id="error-modal">
+    <div class="modal-content border-red">
+      <div class="modal-header">
+        <h3 class="modal-title red-text">Publishing Error Details</h3>
+        <button class="modal-close" id="btn-close-error-modal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p class="error-timestamp" id="modal-error-time"></p>
+        <div class="error-box" id="modal-error-text"></div>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
