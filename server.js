@@ -884,34 +884,70 @@ async function publishWithPuppeteer(postRow) {
 
 // Helper to temporarily host a file publicly for Instagram API (bypassing localtunnel splash screen)
 async function getPublicUrlForMedia(file) {
+  const localFilePath = path.join(imagesDir, file);
+  
+  // On Render, serve files directly from the public URL
+  if (process.env.RENDER_EXTERNAL_URL) {
+    const renderUrl = `${process.env.RENDER_EXTERNAL_URL}/images/${encodeURIComponent(file)}`;
+    logMessage('INFO', `[Meta API] Using Render public URL: ${renderUrl}`);
+    return renderUrl;
+  }
+
+  // Try Litterbox (catbox temporary hosting - 1 hour expiry)
   try {
-    logMessage('INFO', `[Meta API] Uploading ${file} to public hosting...`);
-    const localFilePath = path.join(imagesDir, file);
+    logMessage('INFO', `[Meta API] Uploading ${file} to Litterbox (temp hosting)...`);
     const fileBuffer = fs.readFileSync(localFilePath);
     const fileBlob = new Blob([fileBuffer]);
     
     const formData = new FormData();
     formData.append('reqtype', 'fileupload');
+    formData.append('time', '1h');
     formData.append('fileToUpload', fileBlob, file);
     
-    const response = await fetch('https://catbox.moe/user/api.php', {
+    const response = await fetch('https://litterbox.catbox.moe/resources/internals/api.php', {
       method: 'POST',
       body: formData
     });
     const url = await response.text();
     
     if (url && url.startsWith('https://')) {
-      logMessage('INFO', `[Meta API] Public URL generated: ${url}`);
+      logMessage('INFO', `[Meta API] Litterbox URL generated: ${url.trim()}`);
       return url.trim();
     } else {
-      logMessage('WARNING', `[Meta API] Catbox upload response was not a URL: ${url}`);
+      logMessage('WARNING', `[Meta API] Litterbox response was not a URL: ${url}`);
     }
   } catch (e) {
-    logMessage('WARNING', `[Meta API] Catbox upload failed: ${e.message}. Falling back to localtunnel.`);
+    logMessage('WARNING', `[Meta API] Litterbox upload failed: ${e.message}`);
+  }
+
+  // Try 0x0.st as secondary fallback
+  try {
+    logMessage('INFO', `[Meta API] Trying 0x0.st upload for ${file}...`);
+    const fileBuffer = fs.readFileSync(localFilePath);
+    const fileBlob = new Blob([fileBuffer]);
+    
+    const formData = new FormData();
+    formData.append('file', fileBlob, file);
+    
+    const response = await fetch('https://0x0.st', {
+      method: 'POST',
+      body: formData
+    });
+    const url = await response.text();
+    
+    if (url && url.startsWith('https://')) {
+      logMessage('INFO', `[Meta API] 0x0.st URL generated: ${url.trim()}`);
+      return url.trim();
+    } else {
+      logMessage('WARNING', `[Meta API] 0x0.st response was not a URL: ${url}`);
+    }
+  } catch (e) {
+    logMessage('WARNING', `[Meta API] 0x0.st upload failed: ${e.message}`);
   }
   
-  // Fallback to public domain or localtunnel url
-  const hostUrl = process.env.RENDER_EXTERNAL_URL || tunnelUrl || `http://localhost:${PORT}`;
+  // Final fallback to localtunnel url
+  const hostUrl = tunnelUrl || `http://localhost:${PORT}`;
+  logMessage('WARNING', `[Meta API] All upload services failed. Using fallback: ${hostUrl}/images/${file}`);
   return `${hostUrl}/images/${file}`;
 }
 
