@@ -1380,6 +1380,11 @@ setInterval(checkScheduleTick, 60000);
 
 // API Endpoints
 
+// Lightweight ping endpoint for keep-alive services (cron-job.org)
+app.get('/ping', (req, res) => {
+  res.json({ ok: true });
+});
+
 // GET configs
 app.get('/api/config', (req, res) => {
   res.json({
