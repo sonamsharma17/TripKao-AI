@@ -97,16 +97,17 @@ function loadConfig() {
     logMessage('ERROR', `Error reading config file: ${e.message}`);
   }
 
-  // Override with environment variables if available
+   // Override with environment variables if available
   if (process.env.MONGO_URI) config.mongoUri = process.env.MONGO_URI;
   if (process.env.META_ACCESS_TOKEN) config.metaAccessToken = process.env.META_ACCESS_TOKEN;
   if (process.env.FACEBOOK_PAGE_ID) config.facebookPageId = process.env.FACEBOOK_PAGE_ID;
   if (process.env.INSTAGRAM_BUSINESS_ACCOUNT_ID) config.instagramBusinessAccountId = process.env.INSTAGRAM_BUSINESS_ACCOUNT_ID;
   if (process.env.TIMEZONE) config.timezone = process.env.TIMEZONE;
 
-  // Disable localtunnel in cloud environments
+  // Disable localtunnel in cloud environments and auto-enable scheduler
   if (process.env.RENDER || process.env.NODE_ENV === 'production') {
     config.useLocalTunnel = false;
+    config.schedulerActive = true; // Always keep scheduler running on cloud
   }
 
   return config;
