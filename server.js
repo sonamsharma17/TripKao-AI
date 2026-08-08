@@ -361,40 +361,36 @@ async function readSchedule() {
 }
 
 // Date / Time Slot calculations
-function parseDateTime(dateStr, timeStr) {
+function parseDateTime(dateStr, timeStr, customTz) {
   if (!dateStr || !timeStr) return null;
   try {
+    const config = loadConfig();
+    const tz = customTz || config.timezone || 'Asia/Kolkata';
     const combinedStr = `${dateStr.trim()} ${timeStr.trim()}`;
-    const parsedDate = new Date(combinedStr);
-    if (!isNaN(parsedDate.getTime())) {
-      return parsedDate;
-    }
-  } catch (e) {}
-  return null;
+    const d = new Date(combinedStr);
+    if (isNaN(d.getTime())) return null;
+
+    // Convert d (which Node parsed in local server timezone) to specified tz's UTC time.
+    const utcParts = new Intl.DateTimeFormat('en-US', { timeZone: 'UTC', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false }).formatToParts(d);
+    const tzParts = new Intl.DateTimeFormat('en-US', { timeZone: tz, year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false }).formatToParts(d);
+    
+    const getMap = parts => parts.reduce((acc, p) => (acc[p.type] = p.value, acc), {});
+    const uM = getMap(utcParts);
+    const tM = getMap(tzParts);
+    
+    const uDate = new Date(Date.UTC(uM.year, uM.month - 1, uM.day, uM.hour, uM.minute, uM.second));
+    const tDate = new Date(Date.UTC(tM.year, tM.month - 1, tM.day, tM.hour, tM.minute, tM.second));
+    
+    const offsetMs = tDate.getTime() - uDate.getTime();
+    const localAsUtc = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate(), d.getHours(), d.getMinutes(), d.getSeconds()));
+    return new Date(localAsUtc.getTime() - offsetMs);
+  } catch (e) {
+    return null;
+  }
 }
 
 function getNowInTimezone(tz) {
-  if (!tz || tz.toLowerCase() === 'local') {
-    return new Date();
-  }
-  try {
-    const options = {
-      year: 'numeric', month: '2-digit', day: '2-digit',
-      hour: '2-digit', minute: '2-digit', second: '2-digit',
-      hour12: false,
-      timeZone: tz
-    };
-    const formatter = new Intl.DateTimeFormat('en-US', options);
-    const parts = formatter.formatToParts(new Date());
-    const map = {};
-    parts.forEach(p => map[p.type] = p.value);
-    
-    const isoString = `${map.year}-${map.month}-${map.day}T${map.hour}:${map.minute}:${map.second}`;
-    return new Date(isoString);
-  } catch (err) {
-    logMessage('ERROR', `Failed to parse timezone ${tz}, falling back to local: ${err.message}`);
-    return new Date();
-  }
+  return new Date();
 }
 
 // Get the next pre-filled slot according to the 4-times-a-day schedule rules
@@ -1336,8 +1332,9 @@ async function checkScheduleTick(force = false) {
       return;
     }
 
-    const now = getNowInTimezone(config.timezone);
-    logMessage('INFO', `Current clock time in configured timezone: ${now.toString()}`);
+    const now = new Date();
+    const formattedNow = now.toLocaleString('en-US', { timeZone: config.timezone || 'Asia/Kolkata' });
+    logMessage('INFO', `Current clock time in configured timezone (${config.timezone || 'Asia/Kolkata'}): ${formattedNow}`);
 
     let pendingCount = 0;
     
