@@ -1309,14 +1309,17 @@ async function executePublish(postRow, bypassDuplicateCheck = false) {
 }
 
 // Background scheduler tick
+let isTicking = false;
 async function checkScheduleTick(force = false) {
   const config = loadConfig();
   if (!config.schedulerActive && !force) {
     return;
   }
+  if (isTicking && !force) {
+    return;
+  }
+  isTicking = true;
 
-  logMessage('INFO', 'Scheduler checking posting queue from database...');
-  
   try {
     let posts = [];
     if (isMongoConnected) {
@@ -1370,6 +1373,8 @@ async function checkScheduleTick(force = false) {
     logMessage('INFO', `Scheduler tick completed. Remaining pending posts: ${pendingCount}`);
   } catch (err) {
     logMessage('ERROR', `Scheduler tick failed: ${err.message}`);
+  } finally {
+    isTicking = false;
   }
 }
 
@@ -1381,6 +1386,7 @@ setInterval(checkScheduleTick, 60000);
 // Lightweight ping endpoint for keep-alive services (cron-job.org)
 app.get('/ping', (req, res) => {
   res.json({ ok: true });
+  checkScheduleTick().catch(e => logMessage('ERROR', `Ping schedule check error: ${e.message}`));
 });
 
 // GET configs
