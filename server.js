@@ -1794,9 +1794,29 @@ app.listen(PORT, async () => {
   // Connect to MongoDB
   await connectDb();
 
+  // Run an immediate schedule check on startup to catch any missed posts
+  setTimeout(() => {
+    logMessage('INFO', 'Running startup schedule check for missed posts...');
+    checkScheduleTick().catch(e => logMessage('ERROR', `Startup schedule check error: ${e.message}`));
+  }, 3000);
+
   // Auto-start tunnel on start if config demands it
   const config = loadConfig();
   if (config.schedulerActive && config.useLocalTunnel) {
     await startTunnel();
+  }
+
+  // Self-ping every 5 minutes on Render to prevent server from sleeping
+  if (process.env.RENDER_EXTERNAL_URL) {
+    const selfPingUrl = `${process.env.RENDER_EXTERNAL_URL}/ping`;
+    logMessage('INFO', `Starting self-ping every 5 minutes to keep server alive: ${selfPingUrl}`);
+    setInterval(async () => {
+      try {
+        await fetch(selfPingUrl, { signal: AbortSignal.timeout(10000) });
+        logMessage('INFO', 'Self-ping successful - server staying alive.');
+      } catch (e) {
+        logMessage('WARNING', `Self-ping failed: ${e.message}`);
+      }
+    }, 5 * 60 * 1000); // every 5 minutes
   }
 });
