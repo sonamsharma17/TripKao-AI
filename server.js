@@ -958,15 +958,16 @@ async function publishWithMetaApi(postRow) {
   }
 
   const postId = postRow._id;
-  const imageKey = (postRow.media || postRow.image || '').trim();
+  const rawMedia = postRow.media || postRow.image || '';
+  const imageKey = Array.isArray(rawMedia) ? rawMedia.join(', ') : String(rawMedia).trim();
   const type = (postRow.type || 'Post').trim();
   const caption = postRow.caption || '';
 
   logMessage('INFO', `[Meta API] Starting posting workflow for: ${imageKey} [Type: ${type}]`);
 
-  const mediaFiles = type.toLowerCase() === 'carousel' 
-    ? imageKey.split(',').map(f => f.trim()).filter(Boolean)
-    : [imageKey];
+  const mediaFiles = Array.isArray(rawMedia) && rawMedia.length > 0
+    ? rawMedia.map(f => String(f).trim()).filter(Boolean)
+    : imageKey.split(',').map(f => f.trim()).filter(Boolean);
 
   // 1. Verify files exist locally
   for (const file of mediaFiles) {
